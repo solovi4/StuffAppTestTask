@@ -6,23 +6,30 @@
 
 <a href="/Home/Add">Добавить работника</a>
 
-<table>
+<table class="employeeTable">
     <thead>
-    <tr class="row">
-        <th class="column">Имя</th>
-        <th class="column">Фамилия</th>
-        <th class="column">Возраст</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var employee in Model.EmployeeList)
-    {
-        <tr class="row">
-            <td class="column">@employee.Name</td>
-            <td class="column">@employee.Surname</td>
-            <td class="column">@employee.Age</td> 
+        <tr>
+            <th>Имя</th>
+            <th>Фамилия</th>
+            <th>Возраст</th>
+            <th>Пол</th>
+            <th>Отдел</th>
+            <th></th>
         </tr>
-    }
-    </tbody>
-</table>
+    </thead>
 
+    <tbody>
+        @foreach (var employee in Model.EmployeeList)
+        {
+            <tr>
+                <td>@employee.Name</td>
+                <td>@employee.Surname</td>
+                <td>@employee.Age</td>
+                <td>@employee.GenderTitle</td>
+                <td>@employee.DepartmentTitle</td>
+                <td>@Html.ActionLink("🖉", "Edit", "Home", new {id = employee.Id})</td>
+            </tr>
+        }
+    </tbody>
+
+</table>

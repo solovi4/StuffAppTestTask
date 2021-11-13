@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StuffAppTestTask.DB;
 using StuffAppTestTask.Models;
@@ -22,14 +23,19 @@ namespace StuffAppTestTask.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var employees = _context.Employees.ToArray();
+            var genders = await _context.Genders.ToArrayAsync();
+            var departments = await _context.Departments.ToArrayAsync();
+            var employees = await _context.Employees.ToArrayAsync();
             var employeeModels = employees.Select(e => new EmployeeModel
             {
+                Id = e.Id,
                 Age = e.Age,
                 Name = e.Name,
-                Surname = e.Surname
+                Surname = e.Surname,
+                GenderTitle = genders.Single(g => g.Id == e.Gender).Title,
+                DepartmentTitle = departments.Single(d => d.Id == e.DepartmentId).Title
             });
             var model = new EmployeeListModel
             {
@@ -38,21 +44,62 @@ namespace StuffAppTestTask.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> Edit(int id)
+        {
+            var departments = await _context.Departments.ToArrayAsync();
+            var genders = await _context.Genders.ToArrayAsync();
+            var programLanguages = await _context.ProgramLanguages.ToArrayAsync();
+            
+            var result = from empl in _context.Employees 
+                where empl.Id == id
+                join exp in _context.Experiences on empl.Id equals exp.EmployeeId
+                select new
+                {
+                    Id = empl.Id,
+                    Name = empl.Name,
+                    Surname = empl.Surname,
+                    Age = empl.Age,
+                    GenderId = empl.Gender,
+                    DepartmentId = empl.DepartmentId,
+                    ProgramLanguageId = exp.ProgramLanguageId
+                };
+
+            var rows = await result.ToArrayAsync();
+
+            var model = new EmployeeAddEditModel
+            {
+                Name = rows.First().Name,
+                Surname = rows.First().Surname,
+                Age = rows.First().Age,
+                Departments = departments.Select(d => d.ToListItem()),
+                DepartmentId = rows.First().DepartmentId.ToString(),
+                GenderId = rows.First().GenderId.ToString(),
+                Genders = genders.Select(g => g.ToListItem()),
+                AllProgramLanguages = programLanguages.Select(p => p.ToListItem()),
+                ProgramLanguages = new List<string>()
+            };
+
+            foreach (var row in rows)
+            {
+                model.ProgramLanguages.Add(row.ProgramLanguageId.ToString());
+            }
+
+            return View(model);
+
+        }
+
         public IActionResult Privacy()
         {
             return View();
         }
 
-        public IActionResult Add()
+        public async Task<IActionResult> Add()
         {
-            var languages = _context.ProgramLanguages.ToArray()
-                .Select(p => new SelectListItem(p.Title, p.Id.ToString()));
+            var languages = (await _context.ProgramLanguages.ToArrayAsync()).Select(p => p.ToListItem());
+            var genders = (await _context.Genders.ToArrayAsync()).Select(g => g.ToListItem());
+            var departments = (await _context.Departments.ToArrayAsync()).Select(d => d.ToListItem());
 
-            var genders = _context.Genders.ToArray().Select(g => new SelectListItem(g.Title, g.Id.ToString()));
-            var departments = _context.Departments.ToArray()
-                .Select(d => new SelectListItem($"{d.Title} этаж {d.Floor}", d.Id.ToString()));
-
-            var model = new EmployeeModel
+            var model = new EmployeeAddEditModel
             {
                 AllProgramLanguages = languages,
                 Genders = genders,
@@ -61,15 +108,15 @@ namespace StuffAppTestTask.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> AddEmployee(EmployeeModel employeeModel)
+        public async Task<IActionResult> AddEmployee(EmployeeAddEditModel employeeAddEditModel)
         {
             var employee = new Employee
             {
-                Age = employeeModel.Age,
-                Gender = int.Parse(employeeModel.GenderId),
-                Name = employeeModel.Name,
-                Surname = employeeModel.Surname,
-                DepartmentId = int.Parse(employeeModel.DepartmentId)
+                Age = employeeAddEditModel.Age,
+                Gender = int.Parse(employeeAddEditModel.GenderId),
+                Name = employeeAddEditModel.Name,
+                Surname = employeeAddEditModel.Surname,
+                DepartmentId = int.Parse(employeeAddEditModel.DepartmentId)
             };
             
             await using (var transaction = await _context.Database.BeginTransactionAsync())
@@ -78,7 +125,7 @@ namespace StuffAppTestTask.Controllers
                 {
                     var employeeAdded = await _context.AddAsync(employee);
                     await employeeAdded.Context.SaveChangesAsync();
-                    var experience = employeeModel.ProgramLanguages.Select(l => new Experience
+                    var experience = employeeAddEditModel.ProgramLanguages.Select(l => new Experience
                     {
                         EmployeeId = employeeAdded.Entity.Id,
                         ProgramLanguageId = int.Parse(l)
@@ -87,7 +134,7 @@ namespace StuffAppTestTask.Controllers
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     await transaction.RollbackAsync();
                     throw;
@@ -96,7 +143,12 @@ namespace StuffAppTestTask.Controllers
             
             return RedirectToAction("Index");
         }
-        
+
+        public async Task<IActionResult> EditEmployee(EmployeeAddEditModel employeeEditEditModel)
+        {
+            throw new NotImplementedException();
+        }
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
