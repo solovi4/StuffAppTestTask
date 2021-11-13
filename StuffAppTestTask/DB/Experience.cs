@@ -1,13 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StuffAppTestTask.DB
 {
-    [Table("Experience")]
+    [Table("experience")]
     public class Experience
     {
-        [Column("EmployeeId")]
+        [Column("employeeid")]
         public int EmployeeId { get; set; }
-        [Column("ProgramLanguageId")]
+        [Column("programlanguageid")]
         public int ProgramLanguageId { get; set; }
     }
 }

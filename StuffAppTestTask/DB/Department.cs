@@ -2,14 +2,14 @@
 
 namespace StuffAppTestTask.DB
 {
-    [Table("Department")]
+    [Table("department")]
     public class Department
     {
-        [Column("Id")]
+        [Column("id")]
         public int Id { get; set; }
-        [Column("Title")]
+        [Column("title")]
         public string Title { get; set; }
-        [Column("Floor")]
+        [Column("floor")]
         public int Floor { get; set; }
     }
 }

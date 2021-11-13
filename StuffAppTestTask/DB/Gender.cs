@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace StuffAppTestTask
+namespace StuffAppTestTask.DB
 {
-    [Table("programlanguage")]
-    public class ProgramLanguage
+    [Table("gender")]
+    public class Gender
     {
         [Column("id")]
         public int Id { get; set; }
+
         [Column("title")]
         public string Title { get; set; }
     }
