@@ -6,6 +6,7 @@
     Age int not null,
     Gender int not null,
     DepartmentId int not null,
+    Deleted boolean default false,
     constraint fk_department
         foreign key (DepartmentId) references department(id),
     constraint fk_gender

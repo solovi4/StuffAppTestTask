@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace StuffAppTestTask.Models
 {
-    public class EmployeeAddEditModel
+    public class EmployeeAddModel
     {
         public string Name { get; set; }
         public string Surname { get; set; }

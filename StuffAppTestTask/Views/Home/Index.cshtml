@@ -15,6 +15,7 @@
             <th>Пол</th>
             <th>Отдел</th>
             <th></th>
+            <th></th>
         </tr>
     </thead>
 
@@ -28,6 +29,13 @@
                 <td>@employee.GenderTitle</td>
                 <td>@employee.DepartmentTitle</td>
                 <td>@Html.ActionLink("🖉", "Edit", "Home", new {id = employee.Id})</td>
+                <td>
+                    @using (Html.BeginForm("Remove", "Home", new {id = employee.Id}, FormMethod.Post))
+                    {
+                        var textRemove = $"Уверены что хотите удалить {employee.Name} {employee.Surname}?";
+                        <input class="removeButton" type="submit" value="✖" onclick="return confirm('@textRemove');" />
+                    }
+                </td>
             </tr>
         }
     </tbody>

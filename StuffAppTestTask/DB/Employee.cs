@@ -20,5 +20,6 @@ namespace StuffAppTestTask.DB
         [Column("gender")] public int Gender { get; set; }
 
         [Column("departmentid")] public int DepartmentId { get; set; }
+        [Column("deleted")] public bool Deleted { get; set; }
     }
 }

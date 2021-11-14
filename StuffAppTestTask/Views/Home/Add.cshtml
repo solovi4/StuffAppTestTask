@@ -1,15 +1,5 @@
-﻿@{
-    Layout = null;
-}
+﻿@model EmployeeAddModel
 
-@model EmployeeAddEditModel
-
-
-<html>
-<head>
-    <title>Add</title>
-</head>
-<body>
 <h1>Добавление сотрудника</h1>
 
 @using (@Html.BeginForm("AddEmployee", "Home", FormMethod.Post))
@@ -29,6 +19,10 @@
     <div>
         @Html.TextBoxFor(m => m.Surname)
     </div>
+    
+    <div>
+        <label>Пол</label>
+    </div>
 
     <div>
         @Html.DropDownListFor(m => m.GenderId, Model.Genders, "Выберите пол")
@@ -41,12 +35,16 @@
     <div>
         @Html.TextBoxFor(m => m.Age)
     </div>
+    
+    <div>
+        <label>Отдел</label>
+    </div>
 
     <div>
         @Html.DropDownListFor(m => m.DepartmentId, Model.Departments, "Выберите отдел")
     </div>
 
-    <h2>Опыт работы</h2>
+    <label>Опыт работы</label>
 
     <div>
         @Html.ListBoxFor(m => m.ProgramLanguages, Model.AllProgramLanguages, "Выберите язык программирования")
@@ -54,7 +52,3 @@
     
     <p><input type="submit" value="Добавить" /></p>
 }
-
-
-</body>
-</html>

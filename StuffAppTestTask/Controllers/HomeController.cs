@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using StuffAppTestTask.DB;
@@ -27,7 +26,10 @@ namespace StuffAppTestTask.Controllers
         {
             var genders = await _context.Genders.ToArrayAsync();
             var departments = await _context.Departments.ToArrayAsync();
-            var employees = await _context.Employees.ToArrayAsync();
+            var employees = await _context.Employees
+                .Where(e => !e.Deleted)
+                .OrderBy(e => e.Id)
+                .ToArrayAsync();
             var employeeModels = employees.Select(e => new EmployeeModel
             {
                 Id = e.Id,
@@ -66,8 +68,9 @@ namespace StuffAppTestTask.Controllers
 
             var rows = await result.ToArrayAsync();
 
-            var model = new EmployeeAddEditModel
+            var model = new EmployeeEditModel
             {
+                Id = id,
                 Name = rows.First().Name,
                 Surname = rows.First().Surname,
                 Age = rows.First().Age,
@@ -99,7 +102,7 @@ namespace StuffAppTestTask.Controllers
             var genders = (await _context.Genders.ToArrayAsync()).Select(g => g.ToListItem());
             var departments = (await _context.Departments.ToArrayAsync()).Select(d => d.ToListItem());
 
-            var model = new EmployeeAddEditModel
+            var model = new EmployeeAddModel
             {
                 AllProgramLanguages = languages,
                 Genders = genders,
@@ -108,15 +111,15 @@ namespace StuffAppTestTask.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> AddEmployee(EmployeeAddEditModel employeeAddEditModel)
+        public async Task<IActionResult> AddEmployee(EmployeeAddModel employeeAddModel)
         {
             var employee = new Employee
             {
-                Age = employeeAddEditModel.Age,
-                Gender = int.Parse(employeeAddEditModel.GenderId),
-                Name = employeeAddEditModel.Name,
-                Surname = employeeAddEditModel.Surname,
-                DepartmentId = int.Parse(employeeAddEditModel.DepartmentId)
+                Age = employeeAddModel.Age,
+                Gender = int.Parse(employeeAddModel.GenderId),
+                Name = employeeAddModel.Name,
+                Surname = employeeAddModel.Surname,
+                DepartmentId = int.Parse(employeeAddModel.DepartmentId)
             };
             
             await using (var transaction = await _context.Database.BeginTransactionAsync())
@@ -125,11 +128,11 @@ namespace StuffAppTestTask.Controllers
                 {
                     var employeeAdded = await _context.AddAsync(employee);
                     await employeeAdded.Context.SaveChangesAsync();
-                    var experience = employeeAddEditModel.ProgramLanguages.Select(l => new Experience
+                    var experience = employeeAddModel.ProgramLanguages.Select(l => new Experience
                     {
                         EmployeeId = employeeAdded.Entity.Id,
                         ProgramLanguageId = int.Parse(l)
-                    });
+                    }).ToArray();
                     await _context.AddRangeAsync(experience);
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -144,9 +147,58 @@ namespace StuffAppTestTask.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> EditEmployee(EmployeeAddEditModel employeeEditEditModel)
+        public async Task<IActionResult> EditEmployee(EmployeeEditModel employeeModel)
         {
-            throw new NotImplementedException();
+            var employee = new Employee
+            {
+                Age = employeeModel.Age,
+                Gender = int.Parse(employeeModel.GenderId),
+                Name = employeeModel.Name,
+                Surname = employeeModel.Surname,
+                DepartmentId = int.Parse(employeeModel.DepartmentId),
+                Id = employeeModel.Id
+            };
+
+            await using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var storedExperience = await _context.Experiences.Where(e => e.EmployeeId == employeeModel.Id)
+                        .ToArrayAsync();
+
+                    var edited = _context.Update(employee);
+                    var newExperience = employeeModel.ProgramLanguages.Select(l => new Experience
+                    {
+                        EmployeeId = employeeModel.Id,
+                        ProgramLanguageId = int.Parse(l)
+                    }).ToArray();
+
+                    var toDeleteExperiences = storedExperience.Except(newExperience, new ExperienceComparer()).ToArray();
+                    var toAddExperience = newExperience.Except(storedExperience, new ExperienceComparer()).ToArray();
+
+                    _context.RemoveRange(toDeleteExperiences);
+                    await _context.AddRangeAsync(toAddExperience);
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+            
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Remove(int id)
+        {
+            var remove = _context.Employees.Single(e => e.Id == id);
+            remove.Deleted = true;
+            _context.Update(remove);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
         }
 
 

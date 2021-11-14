@@ -80,3 +80,9 @@ body {
   border-top-style: solid;
   border-top-width: thin;
 }
+
+.removeButton
+{
+  border: none;
+  background: none;
+}
