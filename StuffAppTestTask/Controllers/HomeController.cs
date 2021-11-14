@@ -3,23 +3,33 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
+using StuffAppTestTask.Authentification;
 using StuffAppTestTask.DB;
 using StuffAppTestTask.Models;
 
 namespace StuffAppTestTask.Controllers
 {
+    //[Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
         private readonly MyContext _context;
+        private readonly IUserService _userService;
 
-        public HomeController(ILogger<HomeController> logger, MyContext context)
+        public HomeController(ILogger<HomeController> logger, MyContext context, IUserService userService)
         {
             _logger = logger;
             _context = context;
+            _userService = userService;
         }
 
         public async Task<IActionResult> Index()
@@ -44,6 +54,32 @@ namespace StuffAppTestTask.Controllers
                 EmployeeList = employeeModels
             };
             return View(model);
+        }
+
+        [Route("LoginForm")]
+        [AllowAnonymous]
+        public IActionResult LoginForm()
+        {
+            return View(new LoginModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login(LoginModel loginModel)
+        {
+            try
+            {
+                var user = await _userService.Authenticate(loginModel.Login, loginModel.Password);
+                var authenticationManager = Request.HttpContext;
+                //authenticationManager.Session.SetString("Login", user.Login);
+                this.ViewData["Login"] = user.Login;
+                return RedirectToAction("Index");
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<IActionResult> Edit(int id)
@@ -91,6 +127,7 @@ namespace StuffAppTestTask.Controllers
 
         }
 
+        [AllowAnonymous]
         public IActionResult Privacy()
         {
             return View();
