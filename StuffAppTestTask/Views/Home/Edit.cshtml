@@ -1,16 +1,21 @@
-﻿@model EmployeeEditModel
+﻿@{
+    ViewData["Title"] = "Редактирование сотрудника";
+}
+
+@model EmployeeEditModel
 
 <h1>Редактирование сотрудника</h1>
 
 @using (Html.BeginForm("EditEmployee", "Home", FormMethod.Post))
 {
     @Html.TextBoxFor(m => m.Id, new {style = "display: none;"})
+    
     <div>
         <label>Имя</label>
     </div>
 
     <div>
-        @Html.TextBoxFor(m => m.Name)
+        @Html.TextBoxFor(m => m.Name, new {autocomplete="on"})
     </div>
 
     <div>
@@ -34,7 +39,7 @@
     </div>
 
     <div>
-        @Html.TextBoxFor(m => m.Age)
+        @Html.TextBoxFor(m => m.Age, new { type = "number" })
     </div>
     
     <div>

@@ -1,15 +1,19 @@
-﻿@model EmployeeAddModel
+﻿@{
+    ViewData["Title"] = "Добавление сотрудника";
+}
+
+@model EmployeeAddModel
 
 <h1>Добавление сотрудника</h1>
 
-@using (@Html.BeginForm("AddEmployee", "Home", FormMethod.Post))
+@using (Html.BeginForm("AddEmployee", "Home", FormMethod.Post))
 {
     <div>
         <label>Имя</label>
     </div>
 
     <div>
-        @Html.TextBoxFor(m => m.Name)
+        @Html.TextBoxFor(m => m.Name, new {autocomplete="on"} )
     </div>
 
     <div>
@@ -33,7 +37,7 @@
     </div>
 
     <div>
-        @Html.TextBoxFor(m => m.Age)
+        @Html.TextBoxFor(m => m.Age, new { type = "number" })
     </div>
     
     <div>

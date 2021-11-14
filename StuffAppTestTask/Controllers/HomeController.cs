@@ -192,13 +192,32 @@ namespace StuffAppTestTask.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Remove(int id)
+        public async Task<IActionResult> DeleteEmployee(int id)
         {
             var remove = _context.Employees.Single(e => e.Id == id);
             remove.Deleted = true;
             _context.Update(remove);
             await _context.SaveChangesAsync();
             return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            var employeeQueryable = from empl in _context.Employees
+                where empl.Id == id
+                join gender in _context.Genders on empl.Gender equals gender.Id
+                join department in _context.Departments on empl.DepartmentId equals department.Id
+                select new EmployeeModel
+                {
+                    Age = empl.Age,
+                    Id = empl.Id,
+                    Name = empl.Name,
+                    Surname = empl.Surname,
+                    DepartmentTitle = department.Title,
+                    GenderTitle = gender.Title
+                };
+            var model = await employeeQueryable.FirstAsync();
+            return View(model);
         }
 
 

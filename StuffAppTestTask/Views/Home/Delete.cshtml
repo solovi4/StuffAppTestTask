@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Удаление сотрудника";
+}
+
+@model EmployeeModel
+
+<h1>Удаление сотрудника</h1>
+
+<h3>Вы уверены что хотите удалить сотрудника?</h3>
+
+@using (Html.BeginForm("DeleteEmployee", "Home", FormMethod.Post))
+{
+    @Html.TextBoxFor(m => m.Id, new {style = "display: none;"})
+    <div>
+        <label>Имя: @Model.Name</label>
+    </div>
+
+    <div>
+        <label>Фамилия: @Model.Surname</label>
+    </div>
+    
+    <div>
+        <label>Пол: @Model.GenderTitle</label>
+    </div>
+    
+    <div>
+        <label>Возраст: @Model.Age</label>
+    </div>
+
+    <div>
+        <label>Отдел: @Model.DepartmentTitle</label>
+    </div>
+
+    <p><input type="submit" value="Удалить" /></p>
+}
