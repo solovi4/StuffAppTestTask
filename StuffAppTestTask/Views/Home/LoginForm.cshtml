@@ -1,0 +1,22 @@
+﻿@model LoginModel
+
+@using (Html.BeginForm("Login", "Home", FormMethod.Post))
+{
+    <div>
+        <label>Логин</label>
+    </div>
+
+    <div>
+        @Html.TextBoxFor(m => m.Login)
+    </div>
+
+    <div>
+        <label>Пароль</label>
+    </div>
+
+    <div>
+        @Html.PasswordFor(m => m.Password)
+    </div>
+
+    <p><input type = "submit" value="Войти"/></p>
+}
